@@ -22,6 +22,7 @@
 </p>
 
 <p align="center">
+  <a href="https://open-vsx.org/extension/ofershap/cursor-office"><img src="https://img.shields.io/open-vsx/v/ofershap/cursor-office?label=Open%20VSX" alt="Open VSX"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-strict-blue.svg" alt="TypeScript"></a>
   <a href="https://cursor.com"><img src="https://img.shields.io/badge/Cursor-1.85+-007ACC.svg" alt="Cursor"></a>
@@ -99,9 +100,9 @@ When the agent isn't working, it has a life. It stands around, grabs coffee, bro
 
 ## Install
 
-### From marketplace
+### From Open VSX
 
-Coming soon.
+Install directly from [Open VSX](https://open-vsx.org/extension/ofershap/cursor-office), or search "Cursor Office" in the Extensions panel.
 
 ### From source
 
