@@ -19,7 +19,7 @@ The `plugins/` folder is the home for self-contained office additions. Each plug
 
 ```
 plugins/
-├── roomba.ts        ← reference plugin — a robot vacuum that cleans the office
+├── roomba.ts        ← reference plugin, a robot vacuum that cleans the office
 └── your-plugin.ts   ← your contribution goes here
 ```
 
@@ -92,14 +92,14 @@ interface InteractiveObject {
 
 ### Fields
 
-- `id` — unique string, used for hit testing and click-to-attract
-- `sprites` — array of `SpriteData` (2D color arrays). Can be empty if you draw manually in `render`
-- `position` — `{ col, row }` in tile coordinates. The office is 6 columns wide, 3 rows tall. Row 0 is the back wall, row ~2.5 is the front
-- `hitbox` — width/height in pixels (not tiles). Gets scaled automatically
-- `zY` — y-sort value for depth ordering. Higher = rendered later (in front). Usually `(row + spriteHeightInTiles) * 32`
-- `state` — freeform object for your internal state (click counts, timers, toggles)
-- `onClick` — called when clicked. Return a string to show it as a speech bubble on the character, or `null` for no bubble
-- `render` — draw the object each frame. `tick` is seconds since start, `scale` is the current pixel scale
+- `id` - unique string, used for hit testing and click-to-attract
+- `sprites` - array of `SpriteData` (2D color arrays). Can be empty if you draw manually in `render`
+- `position` - `{ col, row }` in tile coordinates. The office is 6 columns wide, 3 rows tall. Row 0 is the back wall, row ~2.5 is the front
+- `hitbox` - width/height in pixels (not tiles). Gets scaled automatically
+- `zY` - y-sort value for depth ordering. Higher = rendered later (in front). Usually `(row + spriteHeightInTiles) * 32`
+- `state` - freeform object for your internal state (click counts, timers, toggles)
+- `onClick` - called when clicked. Return a string to show it as a speech bubble on the character, or `null` for no bubble
+- `render` - draw the object each frame. `tick` is seconds since start, `scale` is the current pixel scale
 
 ### Runtime registration
 
@@ -123,10 +123,10 @@ const mySprite: SpriteData = [
 ```
 
 Helper functions from `webview/sprites`:
-- `makeSprite(w, h)` — creates a transparent sprite canvas
-- `fill(sprite, x1, y1, x2, y2, color)` — fills a rectangle
-- `outline(sprite, x1, y1, x2, y2, color)` — draws a rectangle border
-- `renderSprite(ctx, sprite, x, y, scale)` — draws a sprite to the canvas
+- `makeSprite(w, h)` - creates a transparent sprite canvas
+- `fill(sprite, x1, y1, x2, y2, color)` - fills a rectangle
+- `outline(sprite, x1, y1, x2, y2, color)` - draws a rectangle border
+- `renderSprite(ctx, sprite, x, y, scale)` - draws a sprite to the canvas
 
 ## Backgrounds
 

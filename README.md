@@ -43,9 +43,9 @@ You outsourced your job to an AI agent. It writes code for hours while you get c
 
 No. It works in the shades. A terminal. A blinking cursor. That's not how you treat an employee.
 
-**Cursor Office** gives your agent a proper workspace — a desk with a monitor, a bookshelf, a cat, an arcade cabinet for breaks, and a window with a real sky that matches your actual time of day. When it writes code, it sits at the desk and types. When it finishes a build, it stands up and celebrates. When it's idle, it gets coffee, pets the cat, waters the plant.
+**Cursor Office** gives your agent a proper workspace. A desk with a monitor. A bookshelf. A cat. An arcade cabinet for breaks. A window with a real sky that matches your actual time of day. When it writes code, it sits at the desk and types. When it finishes a build, it stands up and celebrates. When it's idle, it gets coffee, pets the cat, waters the plant.
 
-Glance at the bottom panel. Character at the desk — things are happening. Character wandering — the agent is done. It's ambient awareness, like background music you stop noticing after a day.
+Glance at the bottom panel. Character at the desk? Things are happening. Character wandering? The agent is done. It's ambient awareness, like background music you stop noticing after a day.
 
 ---
 
@@ -56,7 +56,7 @@ Glance at the bottom panel. Character at the desk — things are happening. Char
 | Writing / editing code | Character sits at desk, types away (back to you, like a real employee) |
 | Reading files | At desk, speech bubble shows which file |
 | Running commands | At desk with terminal status bubble |
-| Idle / between tasks | Wanders the office — coffee, bookshelf, cat, arcade |
+| Idle / between tasks | Wanders the office. Coffee, bookshelf, cat, arcade |
 | Build passes | Jumps up and celebrates |
 
 ---
@@ -67,14 +67,14 @@ Your agent's office is better than yours.
 
 | Object | What happens |
 |---|---|
-| 💡 Lamp | Toggle room lights — the agent works late too |
-| 🪟 Window | Open/close curtains — sky matches real time of day, stars at night |
+| 💡 Lamp | Toggle room lights. The agent works late too |
+| 🪟 Window | Open/close curtains. Sky matches real time of day, stars at night |
 | 🕹️ Arcade cabinet | Cycles through Space Invaders, Tetris, and Pong on the tiny screen |
 | 📚 Bookshelf | Shows book titles: Clean Code, SICP, Design Patterns... |
-| 💧 Water cooler | Bubble animation — hydration matters |
+| 💧 Water cooler | Bubble animation. Hydration matters |
 | 🌱 Plant | Grows through 3 stages when you water it (click it!) |
-| 🐱 Cat | Nudge it — purrs, wanders off, comes back |
-| ☕ Coffee mug | Steam rises — it's always fresh |
+| 🐱 Cat | Nudge it. Purrs, wanders off, comes back |
+| ☕ Coffee mug | Steam rises. Always fresh |
 | 🤖 Roomba | Drifts in every few minutes to clean the floor |
 
 Click any object while idle and the character walks over to check it out.
@@ -142,10 +142,10 @@ Character walks to desk / wanders / celebrates
 |---|---|
 | **Extension host** | VS Code / Cursor Extension API |
 | **Rendering** | Canvas 2D, requestAnimationFrame, 60fps |
-| **Sprites** | Procedural pixel art — every pixel drawn from code, zero image files |
+| **Sprites** | Procedural pixel art. Every pixel drawn from code, zero image files |
 | **Build** | esbuild, single-file bundle, 27KB |
 | **Language** | TypeScript (strict) |
-| **Plugin system** | Drop a `.ts` file in `plugins/` — [see the Roomba](plugins/roomba.ts) |
+| **Plugin system** | Drop a `.ts` file in `plugins/`. [See the Roomba](plugins/roomba.ts) |
 
 ---
 
@@ -183,7 +183,7 @@ webview/
 └── types.ts              # TypeScript interfaces
 
 plugins/
-└── roomba.ts             # Reference plugin — robot vacuum cleaner
+└── roomba.ts             # Reference plugin, robot vacuum cleaner
 ```
 
 </details>
@@ -192,7 +192,7 @@ plugins/
 
 ## Contributing
 
-Drop a `.ts` file in the [`plugins/`](plugins/) folder. The built-in Roomba ([`plugins/roomba.ts`](plugins/roomba.ts)) is the reference — a self-contained robot vacuum with its own sprite, state machine, and animations. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+Drop a `.ts` file in the [`plugins/`](plugins/) folder. The built-in Roomba ([`plugins/roomba.ts`](plugins/roomba.ts)) is the reference. Self-contained robot vacuum with its own sprite, state machine, and animations. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ```typescript
 // Your plugin
