@@ -1,6 +1,8 @@
 import { InteractiveObject, OfficeState } from './types';
 import { TILE_SIZE } from './sprites';
 
+const NON_CLICKABLE = new Set(['desk', 'chair']);
+
 export function hitTest(
   mouseX: number,
   mouseY: number,
@@ -11,15 +13,15 @@ export function hitTest(
 
   for (let i = objects.length - 1; i >= 0; i--) {
     const obj = objects[i]!;
+    if (NON_CLICKABLE.has(obj.id)) continue;
+
     const ox = obj.position.col * tileS;
     const oy = obj.position.row * tileS;
     const ow = obj.hitbox.w * tileS;
     const oh = obj.hitbox.h * tileS;
 
     if (mouseX >= ox && mouseX < ox + ow && mouseY >= oy && mouseY < oy + oh) {
-      if (obj.onClick !== undefined && obj.id !== 'desk' && obj.id !== 'chair') {
-        return obj;
-      }
+      return obj;
     }
   }
   return null;

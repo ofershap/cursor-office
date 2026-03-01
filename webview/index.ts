@@ -20,17 +20,13 @@ const canvas = document.getElementById('officeCanvas') as HTMLCanvasElement;
 let scale = 3;
 
 function resize() {
-  const container = canvas.parentElement!;
-  const availW = container.clientWidth;
-  const availH = container.clientHeight;
+  const availW = window.innerWidth;
+  const availH = window.innerHeight;
   const nativeW = COLS * TILE_SIZE;
   const nativeH = ROWS * TILE_SIZE;
-  scale = Math.max(1, Math.min(
-    Math.floor(availW / nativeW),
-    Math.floor(availH / nativeH)
-  ));
-  canvas.width = nativeW * scale;
-  canvas.height = nativeH * scale;
+  scale = Math.min(availW / nativeW, availH / nativeH);
+  canvas.width = Math.floor(nativeW * scale);
+  canvas.height = Math.floor(nativeH * scale);
   canvas.style.width = canvas.width + 'px';
   canvas.style.height = canvas.height + 'px';
   const ctx = canvas.getContext('2d');
@@ -48,17 +44,16 @@ const state: OfficeState = {
 
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
   handleClick(mx, my, state, scale);
 });
 
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
   updateHover(mx, my, state, scale);
-
   canvas.style.cursor = state.hoveredObjectId ? 'pointer' : 'default';
 });
 

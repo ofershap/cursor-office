@@ -8,23 +8,30 @@ export interface ParsedStatus {
 export function inferActivityFromText(text: string): ParsedStatus | null {
   const t = text.toLowerCase();
 
-  if (/\b(read|reading|check|look at|inspect|examin)\b/.test(t) && /\b(file|code|content|config|package|module)\b/.test(t)) {
+  if (/\b(read|reading|check|look at|inspect|examin|open)\b/.test(t) && /\b(file|code|content|config|package|module|source|dir|folder)\b/.test(t)) {
     return { activity: 'reading', statusText: extractTarget(text, 'Reading') };
   }
-  if (/\b(search|grep|find|glob|looking for|scan)\b/.test(t)) {
+  if (/\b(search|grep|find|glob|looking for|scan|explor)\b/.test(t)) {
     return { activity: 'searching', statusText: extractTarget(text, 'Searching') };
   }
-  if (/\b(run |running|execute|\$ |shell|terminal|npm |git |install|build|test)\b/.test(t)) {
+  if (/\b(run |running|execute|\$ |shell|terminal|npm |git |install|build|test|command)\b/.test(t)) {
     return { activity: 'running', statusText: extractTarget(text, 'Running') };
   }
-  if (/\b(edit|updat|replac|modif|fix|chang|rewrit|add .* to|creat)\b/.test(t) && /\b(file|code|function|component|line|class)\b/.test(t)) {
+  if (/\b(edit|updat|replac|modif|fix|chang|rewrit|writ|add .* to|creat|implement|refactor)\b/.test(t) && /\b(file|code|function|component|line|class|module|method)\b/.test(t)) {
     return { activity: 'editing', statusText: extractTarget(text, 'Editing') };
   }
-  if (/\b(web|fetch|url|browse|http)\b/.test(t)) {
+  if (/\b(web|fetch|url|browse|http|download)\b/.test(t)) {
     return { activity: 'reading', statusText: 'Fetching web content...' };
   }
-  if (/\b(let me|i'll|going to|need to|now)\b/.test(t)) {
+  if (/\b(complet|done|finish|success|all .* complete)\b/.test(t)) {
+    return { activity: 'celebrating', statusText: 'Done!' };
+  }
+  if (/\b(let me|i'll|going to|need to|now|start)\b/.test(t) && text.length < 200) {
     return { activity: 'typing', statusText: 'Working...' };
+  }
+
+  if (text.length > 50) {
+    return { activity: 'typing', statusText: null };
   }
 
   return null;
@@ -43,16 +50,38 @@ function extractTarget(text: string, prefix: string): string {
 export function parseTranscriptLine(line: string): ParsedStatus | null {
   try {
     const record = JSON.parse(line);
+    const role = record.role || record.type;
+    if (!role) return null;
 
-    const type = record.type || record.role;
-    if (!type) return null;
+    if (role === 'assistant') {
+      let text = '';
 
-    if (type === 'assistant') {
-      const text = typeof record.message === 'string'
-        ? record.message
-        : record.content?.[0]?.text || record.text || '';
+      if (record.message?.content) {
+        const content = record.message.content;
+        if (Array.isArray(content)) {
+          for (const part of content) {
+            if (part.type === 'text' && part.text) {
+              text += part.text + ' ';
+            }
+          }
+        } else if (typeof content === 'string') {
+          text = content;
+        }
+      }
 
-      if (!text || text.length > 500) return null;
+      if (!text && typeof record.message === 'string') {
+        text = record.message;
+      }
+      if (!text && record.text) {
+        text = record.text;
+      }
+      if (!text && record.content?.[0]?.text) {
+        text = record.content[0].text;
+      }
+
+      text = text.trim();
+      if (!text || text.length > 2000) return null;
+
       return inferActivityFromText(text);
     }
 
