@@ -2,7 +2,7 @@
   "name": "cursor-office",
   "displayName": "Cursor Office",
   "description": "Your AI agent deserves an office. A pixel art workspace where your Cursor agent types, reads, celebrates, and takes coffee breaks.",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "publisher": "ofershap",
   "license": "MIT",
   "icon": "assets/icon.png",

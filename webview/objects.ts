@@ -12,6 +12,58 @@ import {
 } from './sprites';
 import { createRoomba } from '../plugins/roomba';
 
+let audioCtx: AudioContext | null = null;
+
+function meow() {
+  try {
+    if (!audioCtx) audioCtx = new AudioContext();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+    const base = 700 + Math.random() * 150;
+    const dur = 0.25 + Math.random() * 0.1;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    // "me-ow": rise then fall
+    osc.frequency.setValueAtTime(base * 0.7, now);
+    osc.frequency.linearRampToValueAtTime(base, now + dur * 0.3);
+    osc.frequency.linearRampToValueAtTime(base * 0.45, now + dur);
+
+    // Vibrato for realism
+    const vib = ctx.createOscillator();
+    const vibGain = ctx.createGain();
+    vib.frequency.value = 20 + Math.random() * 10;
+    vibGain.gain.value = 15;
+    vib.connect(vibGain).connect(osc.frequency);
+    vib.start(now);
+    vib.stop(now + dur);
+
+    // Second harmonic for nasal quality
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(base * 1.4, now);
+    osc2.frequency.linearRampToValueAtTime(base * 2, now + dur * 0.3);
+    osc2.frequency.linearRampToValueAtTime(base * 0.9, now + dur);
+    gain2.gain.setValueAtTime(0.03, now);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    osc2.connect(gain2).connect(ctx.destination);
+    osc2.start(now);
+    osc2.stop(now + dur);
+
+    // Envelope: quick attack, sustain, fade
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
+    gain.gain.setValueAtTime(0.15, now + dur * 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + dur);
+  } catch {}
+}
+
 function defaultRender(ctx: CanvasRenderingContext2D, obj: InteractiveObject, _tick: number, scale: number) {
   const sprite = obj.sprites[0];
   if (!sprite) return;
@@ -444,6 +496,7 @@ export function createCat(col: number, row: number): InteractiveObject {
       const newRow = Math.max(1.2, Math.min(2.5, (obj.position.row + dy)));
       obj.state.targetCol = newCol;
       obj.state.targetRow = newRow;
+      meow();
       return '🐱 Mrrp!';
     },
     render: (ctx, obj, tick, scale) => {
