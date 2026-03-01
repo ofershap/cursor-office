@@ -1,0 +1,41 @@
+# Coordinate System & Z-Ordering
+
+## Grid
+- 6 columns x 3 rows, each tile 32px. Landscape layout for Cursor's bottom panel.
+- Positions use fractional tile coords (e.g., `col: 2.8, row: 1.4`).
+- Row 0 = back wall. Higher row = closer to viewer.
+
+## Scaling & Centering
+- `scale = Math.min(viewportW / (6*32), viewportH / (3*32))` - fits the smaller axis.
+- Scene is centered with `offsetX` and `offsetY`. All mouse events MUST subtract these offsets.
+- Canvas size = full viewport. Scene size = `6*32*scale` x `3*32*scale`.
+
+## Z-Ordering (past bug source)
+- Objects use UNSCALED `zY` values: `(row + offset) * TILE_SIZE` (no `* scale`).
+- Character zY in office.ts: `(position.row + 1) * TILE_SIZE` (also unscaled).
+- Both MUST be in the same coordinate space or sorting breaks silently.
+- Objects with lower `zY` render first (behind). The `sortable` array in `office.ts` handles this.
+
+## Object Positions
+Current layout (col, row) for `createDefaultObjects()`:
+- Rug: 1.5, 1.4
+- Lamp: 0.5, 0 (ceiling)
+- Window: 3.8, 0.1 (back wall, between desk and bookshelf)
+- Desk: 1.5, 0.6
+- Chair: 1.8, 1.3
+- Coffee mug: 3, 0.85
+- Bookshelf: 5.1, 0.2
+- Water cooler: 4.5, 1.5
+- Arcade: 0, 0.8
+- Plant: 5.2, 2
+- Cat: 3, 1.8
+
+## Waypoint Positions
+Character waypoints in `character.ts` must align with object positions.
+"In front of" means HIGHER row (closer to viewer), facing 'back'.
+`OBJECT_POSITIONS` map and `IDLE_WAYPOINTS` array must stay in sync with `createDefaultObjects()`.
+
+## Desk Position
+`DESK_COL = 1.9, DESK_ROW = 1.05`. Character walks here when working.
+`isAtDesk()` checks `< 0.5` tolerance. The chair is at (1.8, 1.3).
+The sit-type sprites show the BACK of the character (hair, suit back, hands on keyboard).

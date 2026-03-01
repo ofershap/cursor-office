@@ -1,0 +1,37 @@
+# Interactive Objects
+
+## Object Factory Pattern
+Each object is created by a `create*()` function in `objects.ts` returning `InteractiveObject`.
+The `render` function receives `(ctx, obj, tick, scale)` — it draws relative to `obj.position` using `scale`.
+`onClick` mutates `obj.state` (toggle, cycle, etc.) and can mutate `OfficeState`.
+
+## Registering External Objects
+`window.agentArcade.registerObject(obj)` — lets external code inject custom objects.
+`registerBackground(bg)` — replaces floor/wall rendering with custom `BackgroundRenderer`.
+This is the extensibility API for future plugins/themes.
+
+## Current Objects & Their States
+
+| Object | `state` key | Behavior |
+|--------|------------|----------|
+| lamp | `on: boolean` | Toggle. Light cone renders in `office.ts` (separate from object render) |
+| window | `curtainsClosed: boolean` | Toggle curtains. Sky renders day/night based on system clock |
+| arcade | `gameIdx: number` | Cycles through 3 mini-game animations (Space Invaders, Tetris, Pong) |
+| coffee | `steamPhase: number` | Increments on click (visual only) |
+| cat | `sleeping: boolean, purring: boolean` | Toggle sleep/purr |
+| plant | `watered: boolean` | Toggle glow effect |
+| watercooler | `bubbles: number` | Increments bubble count |
+
+## Hitbox Gotchas
+- Hitbox `{ w, h }` is in PIXEL space (unscaled). Hit test multiplies by `scale`.
+- Position is in TILE coords, so pixel position = `col * TILE_SIZE * scale`.
+- Small objects (cat, plant) need oversized hitboxes for usability. Aim for at least 20x14 for small items.
+- Hitbox anchors at top-left of the object's tile position.
+
+## Adding a New Object
+1. Create sprite(s) in `sprites.ts` using `makeSprite` / `fill` / `outline`.
+2. Add factory function in `objects.ts` with position, hitbox, zY, state, onClick, render.
+3. Add to `createDefaultObjects()` array.
+4. Add entry in `OBJECT_POSITIONS` (character.ts) if the character should walk to it on click.
+5. Add corresponding waypoint in `IDLE_WAYPOINTS` if the character should visit it during idle patrol.
+6. Set `zY = (row + some_offset) * TILE_SIZE` (unscaled) for correct depth sorting.

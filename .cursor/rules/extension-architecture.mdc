@@ -1,0 +1,37 @@
+# Extension Architecture
+
+## Build Pipeline
+Two separate builds:
+1. `esbuild` for extension host (`src/extension.ts` → `dist/extension.js`, Node context)
+2. `esbuild` for webview (`webview/index.ts` → `dist/webview.js`, browser context)
+
+These are DIFFERENT runtimes. The extension host has Node + VS Code API. The webview has DOM + Canvas.
+They communicate only via `postMessage` / `onDidReceiveMessage`.
+
+## Webview Security
+CSP requires `script-src 'nonce-...'`. The nonce is generated per webview instance in the extension host.
+The webview HTML template injects the nonce into the script tag.
+No inline scripts, no eval, no external CDN scripts.
+
+## Transcript Watcher Path Resolution
+Cursor stores transcripts at `~/.cursor/projects/<workspace-hash>/agent-transcripts/`.
+The workspace hash is derived from the workspace path but not predictable.
+`cursorWatcher.ts` scans `~/.cursor/projects/*/agent-transcripts/` with glob.
+Watch is set on the directory for new/changed files, not individual JSONL files.
+Idle timer: 30 seconds of no file changes → sends 'idle'.
+
+## JSONL Parsing
+Each line in a transcript file is a JSON object. Read the LAST few lines to infer current state.
+Heuristic matching on content strings (e.g., "edit" → editing, "search" → searching).
+This is intentionally fuzzy — transcript format may change across Cursor versions.
+
+## Extension Registration
+- `WebviewViewProvider` registered for view ID `agentArcade.officeView`.
+- Contributes to `panel` viewContainer (bottom panel in Cursor).
+- `package.json` must declare the view under `contributes.views.panel`.
+
+## Packaging
+```bash
+npm run build:webview && npm run compile && npx vsce package --no-dependencies
+```
+Produces `.vsix` file. Install with `code --install-extension agent-arcade-*.vsix` (or `cursor` CLI).

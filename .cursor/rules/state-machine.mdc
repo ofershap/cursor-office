@@ -1,0 +1,38 @@
+# Agent State Machine & Idle Behavior
+
+## Activity States
+Working: `typing | editing | running | searching | reading` → character walks to desk (fast: 5.0), sits, types.
+`idle` → autonomous waypoint patrol.
+`celebrating` → jumps in center, then returns to idle.
+
+## State Transitions (setActivity)
+- Any working state: clears `targetPosition`, then sets it to DESK pos. Character rushes there.
+- `idle`: resets `idleActionTimer` to 0 (immediately picks next waypoint).
+- `celebrating`: sets target to center (CELEBRATE_COL/ROW), resets animFrame.
+
+## Cursor Watcher → Extension → Webview Flow
+`cursorWatcher.ts` watches transcript files (`~/.cursor/projects/*/agent-transcripts/*.jsonl`).
+On change: reads JSONL → infers activity from last few lines → sends `{ type: 'agentStatus', activity, statusText }` via `panel.webview.postMessage()`.
+Idle timeout: 30 seconds of no file changes → activity = 'idle'.
+
+## Working State Persistence
+`isWorking()` returns true for all 5 working activities.
+While working + at desk, speech bubble auto-cycles "Working." dots (0.5s timer).
+This loop runs inside `updateCharacter()`. The bubble persists until activity changes.
+`isAtDesk()` tolerance is 0.5 tiles - prevents bubble from showing while walking to desk.
+
+## Idle Behavior
+`IDLE_WAYPOINTS` array - sequential list of (position, action, duration).
+Character visits them in order, wrapping around. Each has a speech bubble.
+Between actions, returns to center (3, 1.8) with `'stand'` action.
+Walk speed when idle: 1.5 (leisurely). When heading to work: 5.0 (urgent).
+
+## Click-to-Attract
+`attractToObject(char, objectId)` - only works when idle.
+Delays 0.8-2.0 seconds (setTimeout) before moving character to object.
+Uses `OBJECT_POSITIONS` map which must match `IDLE_WAYPOINTS` coords.
+
+## Hitboxes
+Pixel-space, UNSCALED. Each object has `{ w, h }`.
+Hit test in `hitTest.ts`: `objX = col * TILE_SIZE * scale`, then checks if mouse is within `w * scale` and `h * scale`.
+Common pitfall: making hitboxes too small. Cat/arcade/plant all needed 1.5-2x enlargement.

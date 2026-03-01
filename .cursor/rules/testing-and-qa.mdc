@@ -1,0 +1,42 @@
+# Visual Testing & QA
+
+## Playwright Setup
+Use Python Playwright (`test-visual.py`) for visual QA.
+Viewport should mimic Cursor's bottom panel: wide + short (e.g., 900x220).
+
+## Click Coordinate Math (CRITICAL)
+Playwright clicks are in CSS pixel space, but the canvas uses internal coordinates with offset.
+To click on object at grid position (col, row):
+
+```python
+x = offset_x + col * TILE_SIZE * scale + hitbox_center_x * scale
+y = offset_y + row * TILE_SIZE * scale + hitbox_center_y * scale
+```
+
+The `offset_x` and `offset_y` are calculated from viewport size - scene size.
+If clicks don't register, the offset math is wrong. This was the most common bug during testing.
+
+## Build + Test Loop
+```bash
+cd agent-arcade && npm run build:webview && npm run compile
+```
+Then use Playwright to open `webview/test.html` (if it exists) or package as VSIX.
+
+## What to QA After Any Visual Change
+1. Character sits correctly at desk (rear-facing, hands at keyboard level)
+2. Character walks to EACH waypoint and faces the right direction
+3. Objects are clickable (especially cat, arcade, plant — small hitboxes)
+4. Speech bubbles don't clip at canvas edges
+5. Z-order: character behind desk when sitting, in front of rug when walking
+6. "Working..." dots animate while at desk
+7. Lamp on/off toggles light cone
+8. Window shows correct time-of-day cycle
+9. Arcade cycles mini-game animations on click
+10. Click-to-attract triggers after delay (only when idle)
+
+## Screenshot-to-GIF Pipeline
+Take individual screenshots with Playwright, then combine:
+```bash
+magick -delay 200 -loop 0 img1.png img2.png img3.png demo.gif
+```
+Output goes to `assets/demo.gif` for the README.
