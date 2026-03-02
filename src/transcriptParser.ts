@@ -143,22 +143,27 @@ export function parseFlatTxtChunk(chunk: string): ParsedStatus | null {
     if (currentRole === 'assistant' && line.trim()) {
       // [Tool call] lines give rich activity signals
       const toolCallMatch = line.match(/^\[Tool call\]\s+(\w+)/);
-      if (toolCallMatch) {
-        const tool = toolCallMatch[1]!.toLowerCase();
-        if (/^(read|glob|grep|semanticsearch)$/.test(tool)) {
-          return { activity: 'reading', statusText: 'Working...' };
+        if (toolCallMatch) {
+          switch (toolCallMatch[1]!.toLowerCase()) {
+            case 'read':
+            case 'glob':
+            case 'grep':
+            case 'semanticsearch':
+              return { activity: 'reading', statusText: 'Working...' };
+            case 'shell':
+            case 'bash':
+              return { activity: 'running', statusText: 'Working...' };
+            case 'strreplace':
+            case 'write':
+            case 'editnotebook':
+            case 'delete':
+              return { activity: 'editing', statusText: 'Working...' };
+            case 'task':
+              return { activity: 'phoning', statusText: 'Delegating...' };
+            default:
+              return { activity: 'typing', statusText: 'Working...' };
+          }
         }
-        if (/^(shell|bash)$/.test(tool)) {
-          return { activity: 'running', statusText: 'Working...' };
-        }
-        if (/^(strreplace|write|editnotebook|delete)$/.test(tool)) {
-          return { activity: 'editing', statusText: 'Working...' };
-        }
-        if (/^(task)$/.test(tool)) {
-          return { activity: 'phoning', statusText: 'Delegating...' };
-        }
-        return { activity: 'typing', statusText: 'Working...' };
-      }
 
       // Accumulate [Thinking] and plain assistant text for inference
       const thinkingMatch = line.match(/^\[Thinking\]\s*(.*)/);

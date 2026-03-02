@@ -172,12 +172,13 @@ export class CursorWatcher implements vscode.Disposable {
         // Format A: sub-directory with <uuid>/<uuid>.jsonl (Linux/Mac)
         if (entry.isDirectory()) {
           const jsonlPath = path.join(this.transcriptsDir, entry.name, entry.name + '.jsonl');
-          if (fs.existsSync(jsonlPath) && !this.filePositions.has(jsonlPath)) {
-            this.log.appendLine(`[scan] New JSONL transcript: ${entry.name}`);
-            this.watchFile(jsonlPath);
-          }
-          if (this.filePositions.has(jsonlPath)) {
-            this.readNewContent(jsonlPath);
+          if (fs.existsSync(jsonlPath)) {
+            if (!this.filePositions.has(jsonlPath)) {
+              this.log.appendLine(`[scan] New JSONL transcript: ${entry.name}`);
+              this.watchFile(jsonlPath);
+            } else {
+              this.readNewContent(jsonlPath);
+            }
           }
           continue;
         }
@@ -243,30 +244,24 @@ export class CursorWatcher implements vscode.Disposable {
       const text = buf.toString('utf-8');
 
       if (isFlatTxt) {
-        const status = parseFlatTxtChunk(text);
-        if (status) {
-          this.log.appendLine(`[activity] ${status.activity}: ${status.statusText}`);
-          this.onStatusChange(status);
-          if (status.activity !== 'idle') {
-            this.resetIdleTimer();
-          }
-        }
+        this.processStatus(parseFlatTxtChunk(text));
       } else {
-        const lines = text.split('\n').filter(l => l.trim());
-        for (const line of lines) {
-          const status = parseTranscriptLine(line);
-          if (status) {
-            this.log.appendLine(`[activity] ${status.activity}: ${status.statusText}`);
-            this.onStatusChange(status);
-            if (status.activity !== 'idle') {
-              this.resetIdleTimer();
-            }
-          }
+        for (const line of text.split('\n').filter(l => l.trim())) {
+          this.processStatus(parseTranscriptLine(line));
         }
       }
     } catch (e) {
       try { fs.closeSync(fd); } catch {}
       this.log.appendLine(`[read] Error: ${e}`);
+    }
+  }
+
+  private processStatus(status: ParsedStatus | null) {
+    if (!status) return;
+    this.log.appendLine(`[activity] ${status.activity}: ${status.statusText}`);
+    this.onStatusChange(status);
+    if (status.activity !== 'idle') {
+      this.resetIdleTimer();
     }
   }
 
