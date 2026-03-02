@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { parseTranscriptLine, ParsedStatus } from './transcriptParser';
-import { isHooksInstalled, getStateFilePath } from './hooksInstaller';
+import { isHooksInstalled, getStateFilePath, IS_WINDOWS } from './hooksInstaller';
 
 export class CursorWatcher implements vscode.Disposable {
   private watchers: fs.FSWatcher[] = [];
@@ -105,14 +105,17 @@ export class CursorWatcher implements vscode.Disposable {
       }
     };
 
-    try {
-      this.hooksWatcher = fs.watch(path.dirname(stateFile), { persistent: false }, (_event, filename) => {
-        if (filename === path.basename(stateFile)) {
-          pollState();
-        }
-      });
-    } catch {
-      this.log.appendLine('[hooks] fs.watch on /tmp failed, falling back to polling');
+    // On Windows %TEMP% is too busy for fs.watch — polling at 1s is sufficient.
+    if (!IS_WINDOWS) {
+      try {
+        this.hooksWatcher = fs.watch(path.dirname(stateFile), { persistent: false }, (_event, filename) => {
+          if (filename === path.basename(stateFile)) {
+            pollState();
+          }
+        });
+      } catch {
+        this.log.appendLine('[hooks] fs.watch on state dir failed, falling back to polling');
+      }
     }
 
     this.scanInterval = setInterval(pollState, 1000);
