@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
-import { parseTranscriptLine, ParsedStatus } from './transcriptParser';
+import { parseTranscriptLine, parseFlatTxtChunk, ParsedStatus } from './transcriptParser';
 import { isHooksInstalled, getStateFilePath } from './hooksInstaller';
 
 export class CursorWatcher implements vscode.Disposable {
@@ -169,14 +169,29 @@ export class CursorWatcher implements vscode.Disposable {
     try {
       const entries = fs.readdirSync(this.transcriptsDir, { withFileTypes: true });
       for (const entry of entries) {
-        if (!entry.isDirectory()) continue;
-        const jsonlPath = path.join(this.transcriptsDir, entry.name, entry.name + '.jsonl');
-        if (fs.existsSync(jsonlPath) && !this.filePositions.has(jsonlPath)) {
-          this.log.appendLine(`[scan] New transcript: ${entry.name}`);
-          this.watchFile(jsonlPath);
+        // Format A: sub-directory with <uuid>/<uuid>.jsonl (Linux/Mac)
+        if (entry.isDirectory()) {
+          const jsonlPath = path.join(this.transcriptsDir, entry.name, entry.name + '.jsonl');
+          if (fs.existsSync(jsonlPath)) {
+            if (!this.filePositions.has(jsonlPath)) {
+              this.log.appendLine(`[scan] New JSONL transcript: ${entry.name}`);
+              this.watchFile(jsonlPath);
+            } else {
+              this.readNewContent(jsonlPath);
+            }
+          }
+          continue;
         }
-        if (this.filePositions.has(jsonlPath)) {
-          this.readNewContent(jsonlPath);
+
+        // Format B: flat <uuid>.txt file (Windows / Cursor ≥ 0.47)
+        if (entry.isFile() && entry.name.endsWith('.txt')) {
+          const txtPath = path.join(this.transcriptsDir, entry.name);
+          if (!this.filePositions.has(txtPath)) {
+            this.log.appendLine(`[scan] New TXT transcript: ${entry.name}`);
+            this.watchFile(txtPath, true);
+          } else {
+            this.readNewContent(txtPath, true);
+          }
         }
       }
     } catch (e) {
@@ -184,7 +199,7 @@ export class CursorWatcher implements vscode.Disposable {
     }
   }
 
-  private watchFile(filePath: string) {
+  private watchFile(filePath: string, isFlatTxt = false) {
     try {
       const fd = fs.openSync(filePath, 'r');
       const stat = fs.fstatSync(fd);
@@ -193,17 +208,17 @@ export class CursorWatcher implements vscode.Disposable {
       this.log.appendLine(`[watch] ${path.basename(filePath)} from pos ${this.filePositions.get(filePath)}`);
 
       const watcher = fs.watch(filePath, { persistent: false }, () => {
-        this.readNewContent(filePath);
+        this.readNewContent(filePath, isFlatTxt);
       });
       this.watchers.push(watcher);
 
-      this.readNewContent(filePath);
+      this.readNewContent(filePath, isFlatTxt);
     } catch (e) {
       this.log.appendLine(`[watch] Error: ${filePath} ${e}`);
     }
   }
 
-  private readNewContent(filePath: string) {
+  private readNewContent(filePath: string, isFlatTxt = false) {
     const prevPos = this.filePositions.get(filePath) ?? 0;
 
     let fd: number;
@@ -227,21 +242,26 @@ export class CursorWatcher implements vscode.Disposable {
       this.log.appendLine(`[read] ${path.basename(filePath)} +${bytesToRead} bytes (${prevPos} → ${stat.size})`);
 
       const text = buf.toString('utf-8');
-      const lines = text.split('\n').filter(l => l.trim());
 
-      for (const line of lines) {
-        const status = parseTranscriptLine(line);
-        if (status) {
-          this.log.appendLine(`[activity] ${status.activity}: ${status.statusText}`);
-          this.onStatusChange(status);
-          if (status.activity !== 'idle') {
-            this.resetIdleTimer();
-          }
+      if (isFlatTxt) {
+        this.processStatus(parseFlatTxtChunk(text));
+      } else {
+        for (const line of text.split('\n').filter(l => l.trim())) {
+          this.processStatus(parseTranscriptLine(line));
         }
       }
     } catch (e) {
       try { fs.closeSync(fd); } catch {}
       this.log.appendLine(`[read] Error: ${e}`);
+    }
+  }
+
+  private processStatus(status: ParsedStatus | null) {
+    if (!status) return;
+    this.log.appendLine(`[activity] ${status.activity}: ${status.statusText}`);
+    this.onStatusChange(status);
+    if (status.activity !== 'idle') {
+      this.resetIdleTimer();
     }
   }
 
