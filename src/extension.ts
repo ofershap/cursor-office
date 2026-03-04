@@ -3,7 +3,17 @@ import { CursorOfficePanelProvider } from './panelProvider';
 import { registerHooksCommands } from './hooksInstaller';
 
 export function activate(context: vscode.ExtensionContext) {
-  const provider = new CursorOfficePanelProvider(context.extensionUri);
+  const statusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    -100
+  );
+  statusBar.text = '$(briefcase) Cursor Office';
+  statusBar.tooltip = 'Open Cursor Office';
+  statusBar.command = 'cursorOffice.show';
+  statusBar.show();
+  context.subscriptions.push(statusBar);
+
+  const provider = new CursorOfficePanelProvider(context.extensionUri, statusBar);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -20,19 +30,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   registerHooksCommands(context);
-
-  const statusBar = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    -100
-  );
-  statusBar.text = '$(briefcase) Cursor Office';
-  statusBar.tooltip = 'Open Cursor Office';
-  statusBar.command = 'cursorOffice.show';
-  statusBar.backgroundColor = new vscode.ThemeColor(
-    'statusBarItem.prominentBackground'
-  );
-  statusBar.show();
-  context.subscriptions.push(statusBar);
 }
 
 export function deactivate() {}

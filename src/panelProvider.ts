@@ -8,7 +8,10 @@ export class CursorOfficePanelProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
   private watcher?: CursorWatcher;
 
-  constructor(private readonly extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly extensionUri: vscode.Uri,
+    private readonly statusBar: vscode.StatusBarItem,
+  ) {}
 
   resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -51,6 +54,21 @@ export class CursorOfficePanelProvider implements vscode.WebviewViewProvider {
       activity: status.activity,
       statusText: status.statusText,
     });
+
+    const working = status.activity === 'typing' || status.activity === 'editing'
+      || status.activity === 'running' || status.activity === 'reading'
+      || status.activity === 'searching' || status.activity === 'phoning';
+
+    if (working) {
+      this.statusBar.text = '$(briefcase) Working...';
+      this.statusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+    } else if (status.activity === 'celebrating') {
+      this.statusBar.text = '$(briefcase) Done!';
+      this.statusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.prominentBackground');
+    } else {
+      this.statusBar.text = '$(briefcase) Cursor Office';
+      this.statusBar.backgroundColor = undefined;
+    }
   }
 
   private getHtml(webview: vscode.Webview): string {
