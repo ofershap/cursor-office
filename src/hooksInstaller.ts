@@ -6,7 +6,12 @@ import * as vscode from 'vscode';
 const HOOKS_DIR = path.join(os.homedir(), '.cursor');
 const HOOKS_JSON = path.join(HOOKS_DIR, 'hooks.json');
 const HOOK_MARKER = 'cursor-office-hook';
-const STATE_FILE = '/tmp/cursor-office-state.json';
+
+const IS_WINDOWS = os.platform() === 'win32';
+
+const STATE_FILE = IS_WINDOWS
+  ? path.join(os.tmpdir(), 'cursor-office-state.json')
+  : '/tmp/cursor-office-state.json';
 
 interface HooksConfig {
   version: number;
@@ -14,11 +19,16 @@ interface HooksConfig {
 }
 
 function getHookScriptPath(extensionPath: string): string {
-  return path.join(extensionPath, 'hooks', 'cursor-office-hook.sh');
+  const script = IS_WINDOWS ? 'cursor-office-hook.ps1' : 'cursor-office-hook.sh';
+  return path.join(extensionPath, 'hooks', script);
 }
 
 function buildHookCommand(extensionPath: string): string {
-  return `bash "${getHookScriptPath(extensionPath)}"`;
+  const scriptPath = getHookScriptPath(extensionPath);
+  if (IS_WINDOWS) {
+    return `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`;
+  }
+  return `bash "${scriptPath}"`;
 }
 
 export function isHooksInstalled(): boolean {
@@ -34,6 +44,8 @@ export function isHooksInstalled(): boolean {
 export function getStateFilePath(): string {
   return STATE_FILE;
 }
+
+export { IS_WINDOWS };
 
 export function installHooks(extensionPath: string): { success: boolean; message: string } {
   const hookCmd = buildHookCommand(extensionPath);
